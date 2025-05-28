@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Heart Rate & Temperature Comparison</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="main.js" defer></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    svg { margin-bottom: 30px; }
+    label { margin-right: 10px; }
+    #charts { display: flex; flex-direction: column; align-items: center; }
+  </style>
+</head>
+<body>
+  <h2>How Nervous Are You? How Well Would You Do?</h2>
+
+  <label for="examType">Exam Type:</label>
+  <select id="examType">
+    <option value="midterm1">Midterm 1</option>
+    <option value="midterm2">Midterm 2</option>
+    <option value="final">Final</option>
+  </select><br><br>
+
+  <label for="avgHR">Average Heart Rate:</label>
+  <input type="range" id="avgHR" min="60" max="140" value="90">
+  <span id="hrValue">90</span><br><br>
+
+  <label for="avgTemp">Average Temperature:</label>
+  <input type="range" id="avgTemp" min="19" max="36" step="0.1" value="23">
+  <span id="tempValue">23</span><br><br>
+
+  <button onclick="loadAndPlot()">Find Closest Student & Plot</button>
+
+  <div id="charts">
+    <h3 id="selectedStudentTitle"></h3>
+    <svg id="hrChart" width="800" height="300"></svg>
+    <svg id="tempChart" width="800" height="300"></svg>
+  </div>
+</body>
+</html>
