@@ -1,4 +1,17 @@
 const studentColorScale = d3.scaleOrdinal(d3.schemeCategory10);
+// Tooltip div
+const tooltip = d3.select("body")
+  .append("div")
+  .style("position", "absolute")
+  .style("padding", "6px")
+  .style("background-color", "white")
+  .style("border", "1px solid #ddd")
+  .style("border-radius", "4px")
+  .style("pointer-events", "none")
+  .style("opacity", 0);
+
+
+
 function loadAndPlot() {
     const exam = document.getElementById("examType").value;
     const inputHR = parseFloat(document.getElementById("avgHR").value);
@@ -61,9 +74,53 @@ function loadAndPlot() {
         drawHRLineChart(studentData, "Time", "Heart Rate", "#hrChart", "Heart Rate (bpm)", average_hr, studentColor);
         drawTempLineChart(studentData, "Time", "Temperature", "#tempChart", "Temperature (°C)", average_temp, studentColor);
 
+// Slider logic (inside loadAndPlot after drawing charts)
+const slider = document.getElementById("timeSlider");
+slider.max = studentData.length - 1;
+slider.value = 0;
 
-//        drawHRLineChart(studentData, "Time", "Heart Rate", "#hrChart", "Heart Rate (bpm)");
-//        drawTempLineChart(studentData, "Time", "Temperature", "#tempChart", "Temperature (°C)");
+slider.oninput = function () {
+  const idx = +this.value;
+  const selectedHRData = studentData[idx];
+  const selectedTempData = studentData[idx];
+
+  const svgHR = d3.select("#hrChart");
+  const svgTemp = d3.select("#tempChart");
+
+  const svgRectHR = svgHR.node().getBoundingClientRect();
+  const margin = { top: 20, right: 30, bottom: 30, left: 60 };
+  const width = svgHR.attr("width") - margin.left - margin.right;
+  const height = svgHR.attr("height") - margin.top - margin.bottom;
+
+  const xScale = d3.scaleTime()
+    .domain(d3.extent(studentData, d => d.Time))
+    .range([0, width]);
+
+  const timeX = xScale(selectedHRData.Time);
+
+  // Tooltip (centered over line)
+  tooltip.transition().duration(100).style("opacity", 0.95);
+  tooltip.html(`
+    <strong>Time:</strong> ${d3.timeFormat("%H:%M")(selectedHRData.Time)}<br>
+    <strong>Heart Rate (bpm):</strong> ${selectedHRData["Heart Rate"].toFixed(2)}<br>
+    <strong>Temperature (°C):</strong> ${selectedTempData.Temperature.toFixed(2)}
+  `)
+    .style("left", `${svgRectHR.left + margin.left + timeX - tooltip.node().offsetWidth / 2}px`)
+    .style("top", `${svgRectHR.top + margin.top}px`);
+
+  // HR hover line
+  svgHR.select(".hover-line")
+    .attr("x1", margin.left + timeX)
+    .attr("x2", margin.left + timeX)
+    .style("opacity", 1);
+
+  // Temp hover line
+  svgTemp.select(".hover-line")
+    .attr("x1", margin.left + timeX)
+    .attr("x2", margin.left + timeX)
+    .style("opacity", 1);
+};
+
     });
   }
   
@@ -112,15 +169,41 @@ function loadAndPlot() {
       .attr("stroke-dasharray", "5,5")
       .attr("d", line);
 
-  
-    g.selectAll("circle")
-     .data(data)
-     .enter()
-     .append("circle")
-     .attr("cx", d => x(d[xKey]))
-     .attr("cy", d => y(d[yKey]))
-     .attr("r", 3)
-     .attr("fill", studentColor);
+      const hoverLine = g.append("line")
+      .attr("class", "hover-line")    
+      .attr("stroke", "#aaa")
+      .attr("stroke-width", 1)
+      .attr("y1", 0)
+      .attr("y2", height)
+      .style("opacity", 0);
+    
+     
+  g.selectAll("circle")
+ .data(data)
+ .enter()
+ .append("circle")
+ .attr("cx", d => x(d[xKey]))
+ .attr("cy", d => y(d[yKey]))
+ .attr("r", 3)
+ .attr("fill", studentColor)
+ .on("mouseover", function(event, d) {
+    tooltip.transition().duration(200).style("opacity", 0.9);
+    tooltip.html(`
+      <strong>Time:</strong> ${d3.timeFormat("%H:%M")(d[xKey])}<br>
+      <strong>${yLabel}:</strong> ${d[yKey]}
+    `)
+    .style("left", `${event.pageX + 10}px`)
+    .style("top", `${event.pageY - 28}px`);
+    hoverLine
+      .attr("x1", x(d[xKey]))
+      .attr("x2", x(d[xKey]))
+      .style("opacity", 1);
+  })
+ .on("mouseout", function() {
+    tooltip.transition().duration(200).style("opacity", 0);
+    hoverLine.style("opacity", 0);
+ });
+
   
     g.append("text")
      .attr("x", -margin.left + 10)
@@ -206,15 +289,41 @@ function loadAndPlot() {
       .attr("stroke-dasharray", "5,5")
       .attr("d", line);
 
-  
+      const hoverLine = g.append("line")
+  .attr("class", "hover-line")
+      .attr("stroke", "#aaa")
+      .attr("stroke-width", 1)
+      .attr("y1", 0)
+      .attr("y2", height)
+      .style("opacity", 0);
+    
     g.selectAll("circle")
-     .data(data)
-     .enter()
-     .append("circle")
-     .attr("cx", d => x(d[xKey]))
-     .attr("cy", d => y(d[yKey]))
-     .attr("r", 3)
-     .attr("fill", studentColor);
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr("cx", d => x(d[xKey]))
+      .attr("cy", d => y(d[yKey]))
+      .attr("r", 3)
+      .attr("fill", studentColor)
+      .on("mouseover", function(event, d) {
+        tooltip.transition().duration(200).style("opacity", 0.9);
+        tooltip.html(`
+          <strong>Time:</strong> ${d3.timeFormat("%H:%M")(d[xKey])}<br>
+          <strong>${yLabel}:</strong> ${d[yKey]}
+        `)
+        .style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 28}px`);
+    
+        hoverLineTemp
+          .attr("x1", x(d[xKey]))
+          .attr("x2", x(d[xKey]))
+          .style("opacity", 1);
+      })
+      .on("mouseout", function() {
+        tooltip.transition().duration(200).style("opacity", 0);
+        hoverLineTemp.style("opacity", 0);
+      });
+    
   
     g.append("text")
      .attr("x", -margin.left + 10)

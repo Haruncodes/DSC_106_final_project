@@ -9,7 +9,12 @@
     body { font-family: sans-serif; padding: 20px; }
     svg { margin-bottom: 30px; }
     label { margin-right: 10px; }
-    #charts { display: flex; flex-direction: column; align-items: center; }
+    #charts {
+      width: 800px;
+      margin: 0 auto;
+    }
+    
+    
   </style>
 </head>
 <body>
@@ -32,11 +37,18 @@
 
   <button onclick="loadAndPlot()">Find Closest Student & Plot</button>
 
-  <div id="charts">
-    <h3 id="selectedStudentTitle"></h3>
-    <svg id="hrChart" width="800" height="300"></svg>
-    <svg id="tempChart" width="800" height="300"></svg>
+<div id="charts">
+  <h3 id="selectedStudentTitle"></h3>
+  <svg id="hrChart" width="800" height="300"></svg>
+  <svg id="tempChart" width="800" height="300"></svg>
+
+  <div style="width:800px;"> <!-- match chart width & left margin -->
+    <label for="timeSlider"><strong>Inspect Exam Time:</strong></label><br>
+    <input type="range" id="timeSlider" style="width:710px; margin-left:60px;" min="0" value="0" step="1">
   </div>
+</div>
+
+  
 <!-- <p><b>Write Up</b></p>
   <p> First Question: What have you done so far? 
   <p>
